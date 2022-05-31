@@ -1,10 +1,12 @@
 FROM alpine
-RUN apk add xorg-server \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+	&& apk update \
+	&& apk add xorg-server \
 	&& apk add xf86-video-dummy \
 	&& apk add xrdp \
 	&& apk add x11vnc \
 	&& apk add xrandr \
-	&& adduser firest -D -H
+	&& adduser firest -D -H \
 	&& echo -e "123456\n123456" | passwd firest
 ADD etc /etc/xorg-foward
 ENV DISPLAY=:0
