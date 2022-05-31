@@ -8,7 +8,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 	&& apk add xrandr \
 	&& adduser firest -D -H \
 	&& echo -e "123456\n123456" | passwd firest
-ADD etc /etc/xorg-foward
+ADD etc /etc/xorg-forward
 ENV DISPLAY=:0
 EXPOSE 3389:3389
-CMD /etc/xorg-foward/start
+CMD /etc/xorg-forward/start
