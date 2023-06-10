@@ -1,2 +1,2 @@
 #!/bin/sh
-run -it --network=laboro --rm -d -p 127.0.0.1:3389:3389 --ip 172.18.255.254 xorg-forward
+docker run --name=xorg-forward --hostname=xorg-forward -it --network=laboro -d --rm -p 127.0.0.1:3389:3389 xorg-forward:0.1.0
