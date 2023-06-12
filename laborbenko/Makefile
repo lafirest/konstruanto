@@ -1,7 +1,15 @@
-build : Dockerfile
-	cp -r ../wireguard wireguard
+.PHONY : build
+build : .ssh wireguard .build
+
+.ssh :
 	cp -r ~/.ssh .ssh
+
+wireguard :
+	cp -r ../wireguard wireguard
+
+.build : Dockerfile entrypoint etc/*
 	lima nerdctl build -t laborbenko:init .
+	touch .build
 
 .PHONY : test
 test :
