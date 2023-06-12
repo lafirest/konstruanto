@@ -1,0 +1,8 @@
+load_layer erlang
+apt install -y curl
+apt install -y unzip
+apt install -y cmake
+apt install -y autoconf
+apt install -y libtool
+run_as firest git clone git@github.com:emqx/emqx.git
+

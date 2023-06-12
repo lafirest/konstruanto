@@ -1,0 +1,3 @@
+#!/bin/sh
+
+lima nerdctl run -it --privileged --network=laboro --rm --name gemqx gemqx:0.1.0 "$@"

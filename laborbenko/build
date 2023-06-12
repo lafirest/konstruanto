@@ -1,0 +1,2 @@
+#!/bin/sh
+lima nerdctl build -t gemqx:0.1.0 .

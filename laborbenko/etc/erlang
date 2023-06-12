@@ -1,0 +1,8 @@
+load_layer init
+apt install -y erlang
+apt install -y rebar3
+run_as firest git clone https://github.com/erlang-ls/erlang_ls.git
+run_as firest cd /home/firest/erlang_ls && PREFIX=~/.local/bin make install
+run_as firest git clone https://github.com/WhatsApp/erlfmt.git
+run_as firest cd /home/firest/erlfmt && rebar3 as release escriptize && cp _build/release/bin/erlfmt ~/.local/bin
+

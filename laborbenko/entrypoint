@@ -1,0 +1,93 @@
+#!/bin/bash 
+
+set -e
+
+#ETC_DIR=etc
+ETC_DIR=/etc/laborbenko
+
+function run_as {
+    local user=$1
+    shift;
+    #runuser -w DISPLAY,http_proxy,https_proxy - $1 -c "$*" 
+    echo ""
+}
+
+function apt {
+    echo ""
+    #command apt -o Acquire::http::proxy=false "$@"
+}
+
+# recoverable init script
+function recoverable_exec_cmds {
+    local index=0
+    local layer=$1
+    shift;
+    local cmds=("$@")
+    local cursor="$ETC_DIR/cursor_$layer"
+    local len=${#cmds[@]}
+
+    ## find the last succeeded index of commands
+    if [[ -f $cursor ]]; then
+        index=$(( $(cat $cursor) + 1 ))
+    else
+        echo -1 > $cursor
+        chmod 666 $cursor
+    fi
+
+    # this index must be local or its value will incorrectly be updated by the sub `load_layer` function 
+    # which is called by the eval and the wrong value will be inherited by the parent function, which leads to this eval loop breaking
+    local i=$index
+    for (( ; i<$len; i++ ))
+    do
+        local cmd="${cmds[$i]}"
+        echo "$cmd"
+        eval "$cmd"
+        echo $i > $cursor
+    done
+}
+
+function exec_cmds {
+    local layer=$1
+    local file=$2
+    local cmds=( )
+
+    if [ -n "$file" ]; then
+        # no readarry in Mac
+        while IFS='' read -r line; do
+            cmds+=( "$line" )
+        done < $file
+    fi
+
+    recoverable_exec_cmds $layer "${cmds[@]}"
+}
+
+function load_layer {
+    local layer=$1
+    exec_cmds $layer "$ETC_DIR/$layer"
+}
+
+while getopts “i:l:” argv
+do
+     case $argv in
+         i)
+             CLI_IP=$OPTARG
+             ;;
+         l)
+             LAYER=$OPTARG
+             ;;
+         ?)
+             ;;
+     esac
+done
+
+case $LAYER in
+    init | erlang | emqx)
+        exec_cmds $LAYER "$ETC_DIR/$LAYER"
+        ;;
+    *) 
+        ;;
+esac
+
+#wg-quick up limacli
+#su -w DISPLAY;http_proxy;https_proxy - firest
+exec bash
