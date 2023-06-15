@@ -1,20 +1,62 @@
-#!/bin/bash 
+#!/bin/bash
 
 set -e
 
 #ETC_DIR=etc
 ETC_DIR=/etc/laborbenko
+RETRY=3
+ENV=DISPLAY,http_proxy,https_proxy,BASH_FUNC_clone%%
 
 function run_as {
     local user=$1
     shift;
-    #runuser -w DISPLAY,http_proxy,https_proxy - $1 -c "$*" 
+    runuser -w $ENV -s /bin/bash - "$user" -c "$*"
     echo ""
 }
 
 function apt {
     echo ""
     #command apt -o Acquire::http::proxy=false "$@"
+    command apt -o Acquire::http::proxy=false "$@"
+}
+
+function load_layer {
+    exec_cmds "$1" "$ETC_DIR/$1"
+}
+
+function clone {
+    local dir="$1"
+    local repo="$2"
+    rm -rf "$dir"
+    git clone --depth 1 "$repo"
+    cd "$dir"
+    git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+
+}
+
+export -f clone
+
+# automatically retry N times after failure
+function with_retry {
+    local i=0
+    local result=0
+    local cmd="$1"
+    echo "$cmd"
+    while true
+    do
+        set +e
+         eval "$cmd"
+        result=$?
+        set -e
+
+        [ $result -eq 0 ] && return 0
+        [ $i -ge $RETRY ] && exit 1
+
+        i=$(( i+1 ))
+        local sleep=$(( i * 3))
+        printf "execute failed,retry:%d,sleep:%d\ncommand:%s\n" $i $sleep "$cmd"
+        sleep $sleep
+    done
 }
 
 # recoverable init script
@@ -61,11 +103,6 @@ function exec_cmds {
     recoverable_exec_cmds $layer "${cmds[@]}"
 }
 
-function load_layer {
-    local layer=$1
-    exec_cmds $layer "$ETC_DIR/$layer"
-}
-
 while getopts “i:l:” argv
 do
      case $argv in
@@ -74,6 +111,12 @@ do
              ;;
          l)
              LAYER=$OPTARG
+             ;;
+         e)
+             EVAL="$OPTARG"
+             ;;
+         b)
+             IS_BUILD=$OPTARG
              ;;
          ?)
              ;;
@@ -88,6 +131,5 @@ case $LAYER in
         ;;
 esac
 
-#wg-quick up limacli
+su -w $ENV -s /bin/bash - firest
 #su -w DISPLAY;http_proxy;https_proxy - firest
-exec bash
