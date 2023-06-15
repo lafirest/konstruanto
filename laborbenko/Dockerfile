@@ -5,10 +5,6 @@ RUN useradd -m -p 19910306 firest \
     && rm /etc/apt/sources.list.d/*
 ENV DISPLAY=xorg-forward:0 \
     http_proxy=http://host.docker.internal:20172 \
-    https_proxy=http://host.docker.internal:20172 
-COPY .ssh /home/firest/.ssh
-COPY wireguard/limacli.conf /etc/wireguard/limacli.conf
-COPY etc  /etc/laborbenko
     https_proxy=http://host.docker.internal:20172 \
     CCACHE_DIR=/mnt/laboro/ccache \
     CC="ccache gcc" \
@@ -16,4 +12,4 @@ COPY etc  /etc/laborbenko
 COPY --chown=firest:firest .ssh /home/firest/.ssh
 COPY wireguard/etc/wgcli.conf /etc/wireguard/wgcli.conf
 COPY entrypoint /usr/bin/entrypoint
-ENTRYPOINT /usr/bin/entrypoint
+ENTRYPOINT ["entrypoint"]

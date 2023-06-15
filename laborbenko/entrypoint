@@ -11,12 +11,9 @@ function run_as {
     local user=$1
     shift;
     runuser -w $ENV -s /bin/bash - "$user" -c "$*"
-    echo ""
 }
 
 function apt {
-    echo ""
-    #command apt -o Acquire::http::proxy=false "$@"
     command apt -o Acquire::http::proxy=false "$@"
 }
 
@@ -45,16 +42,16 @@ function with_retry {
     while true
     do
         set +e
-         eval "$cmd"
+        eval "$cmd"
         result=$?
         set -e
 
         [ $result -eq 0 ] && return 0
-        [ $i -ge $RETRY ] && exit 1
+        [ $i -ge $RETRY ] && echo "Automatic installation failed, enter manual mode" && exec bash
 
         i=$(( i+1 ))
         local sleep=$(( i * 3))
-        printf "execute failed,retry:%d,sleep:%d\ncommand:%s\n" $i $sleep "$cmd"
+        printf "Execute failed,retry:%d,sleep:%d\ncommand:%s\n" $i $sleep "$cmd"
         sleep $sleep
     done
 }
@@ -70,21 +67,20 @@ function recoverable_exec_cmds {
 
     ## find the last succeeded index of commands
     if [[ -f $cursor ]]; then
-        index=$(( $(cat $cursor) + 1 ))
+        index=$(( $(cat "$cursor") + 1 ))
     else
-        echo -1 > $cursor
-        chmod 666 $cursor
+        echo -1 > "$cursor"
+        chmod 666 "$cursor"
     fi
 
-    # this index must be local or its value will incorrectly be updated by the sub `load_layer` function 
+    # this index must be local or its value will incorrectly be updated by the sub `load_layer` function
     # which is called by the eval and the wrong value will be inherited by the parent function, which leads to this eval loop breaking
     local i=$index
-    for (( ; i<$len; i++ ))
+    for (( ; i<len; i++ ))
     do
         local cmd="${cmds[$i]}"
-        echo "$cmd"
-        eval "$cmd"
-        echo $i > $cursor
+        with_retry "$cmd"
+        echo $i > "$cursor"
     done
 }
 
@@ -97,13 +93,13 @@ function exec_cmds {
         # no readarry in Mac
         while IFS='' read -r line; do
             cmds+=( "$line" )
-        done < $file
+        done < "$file"
     fi
 
-    recoverable_exec_cmds $layer "${cmds[@]}"
+    recoverable_exec_cmds "$layer" "${cmds[@]}"
 }
 
-while getopts “i:l:” argv
+while getopts “i:l:e:b:” argv
 do
      case $argv in
          i)
@@ -119,17 +115,30 @@ do
              IS_BUILD=$OPTARG
              ;;
          ?)
-             ;;
+         ;;
      esac
 done
 
-case $LAYER in
-    init | erlang | emqx)
-        exec_cmds $LAYER "$ETC_DIR/$LAYER"
-        ;;
-    *) 
-        ;;
-esac
+[ -n "$CLI_IP" ] && sed -i "s/Address =.*/Address = $CLI_IP\\/16/" /etc/wireguard/wgcli.conf
+
+[ -n "$LAYER" ] && [ "init" != "$LAYER" ] && exec_cmds "$LAYER" "$ETC_DIR/$LAYER"
+
+## eval is always executed at the last for load some customized instructions
+if [ -n "$EVAL" ]; then
+    echo "eval:$EVAL"
+    while read -d ";" -r cmd; do
+        with_retry "$cmd"
+    done <<< "$EVAL"
+fi
+
+if $IS_BUILD; then
+    exit 0
+fi
+
+if [ -x "$(command -v wg-quick)" ]; then
+    ip="$(grep -oE -m 1 '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' /etc/wireguard/wgcli.conf)"
+    echo "Wireguard client ip is:$ip"
+    wg-quick up wgcli
+fi
 
 su -w $ENV -s /bin/bash - firest
-#su -w DISPLAY;http_proxy;https_proxy - firest

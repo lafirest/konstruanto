@@ -1,0 +1,13 @@
+apt update
+apt upgrade -y
+apt install -y build-essential
+apt install -y ccache
+apt install -y git
+apt install -y iproute2
+apt install -y wireguard-tools
+apt install -y emacs-gtk
+apt install -y meld
+apt install -y fonts-firacode
+apt autoremove && apt clean
+run_as firest clone /home/firest/.emacs.d git@github.com:lafirest/.emacs.d.git
+run_as firest emacs --batch -l /home/firest/.emacs.d/init.el

@@ -1,8 +1,10 @@
-load_layer erlang
+#load_layer erlang
 apt install -y curl
 apt install -y unzip
 apt install -y cmake
 apt install -y autoconf
 apt install -y libtool
-run_as firest git clone git@github.com:emqx/emqx.git
-
+apt autoremove && apt clean
+run_as firest clone /home/firest/emqx git@github.com:emqx/emqx.git
+run_as firest 'cd /home/firest/emqx && make'
+run_as firest 'cd /home/firest/emqx && make clean'
