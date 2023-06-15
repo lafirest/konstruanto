@@ -1,0 +1,13 @@
+#!/bin/bash
+
+function rand {
+    shuf -n 1 -i "$1-$2"
+}
+
+is_test=$1
+
+if $is_test; then
+    echo "10.$(rand 0 127).$(rand 0 255).$(rand 3 255)"
+else
+    echo "10.$(rand 128 255).$(rand 0 255).$(rand 3 255)"
+fi
