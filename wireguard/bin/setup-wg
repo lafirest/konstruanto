@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ip=$(alloc-ip "$(hostname)")
+ip link add dev wgcli type wireguard
+ip address add dev wgcli "$ip/16"
+wg setconf wgcli /etc/wireguard/wgcli.conf
+ip link set up dev wgcli

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+rm -rf /tmp/dns_svr
+mkfifo /tmp/dns_svr
+
+#HOSTS=hosts
+HOSTS=/etc/hosts
+
+function loop {
+    while true;
+    do
+        read -r cmd arg1 arg2 < /tmp/dns_svr
+        case $cmd in
+         add)
+             add "$arg1" "$arg2"
+             ;;
+         del)
+             delete "$arg1"
+             ;;
+         clear)
+             clear
+             ;;
+         stop)
+             exit 0
+             ;;
+         ?)
+         ;;
+     esac
+    done
+}
+
+function add {
+    local name="$1"
+    local ip="$2"
+    echo "$ip $name #dns-svr" >> $HOSTS
+}
+
+function delete {
+    local name="$1"
+    sed -i .bak "/$name #dns-svr/d" $HOSTS
+}
+
+function clear {
+    sed -i .bak "/#dns-svr/d" $HOSTS
+}
+
+loop

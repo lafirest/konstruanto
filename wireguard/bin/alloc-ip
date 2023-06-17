@@ -1,0 +1,10 @@
+#!/bin/bash
+## alloc an unique IP address (not really, but enough for myself) to each container by its host/container name
+
+## Repeat to reduce collision
+name="$1$1$1$1"
+
+## hash the name then use it as the random seed to generate a deterministic sequence
+result=($(shuf -i 2-254 -n 2 --random-source=<(sha1sum <(echo "$name"))))
+
+echo "10.254.${result[0]}.${result[1]}"
