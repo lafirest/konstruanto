@@ -1,7 +1,9 @@
 #!/bin/bash
 
+set -e
+
 rm -rf /tmp/dns_svr
-mkfifo /tmp/dns_svr
+mkfifo -m 666 /tmp/dns_svr
 
 #HOSTS=hosts
 HOSTS=/etc/hosts

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cp etc/wgsvr.conf /etc/wireguard/
+wg-quick up wgsvr
+./bin/dns-svr
+wg-quick stop wgsvr
