@@ -6,3 +6,4 @@ bin/*
 .ssh/*
 wireguard
 wireguard/*
+nohup.out

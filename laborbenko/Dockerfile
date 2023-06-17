@@ -11,6 +11,5 @@ ENV DISPLAY=xorg-forward:0 \
     CCACHE_DIR=/mnt/laboro/ccache
 COPY --chown=firest:firest .ssh /home/firest/.ssh
 COPY --chown=firest:firest etc/gitconfig /home/firest/.gitconfig
-COPY wireguard/etc/wgcli.conf /etc/wireguard/wgcli.conf
 COPY bin/* /usr/bin/
 ENTRYPOINT ["entrypoint"]

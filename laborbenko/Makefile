@@ -3,25 +3,23 @@ tag := init
 layer := init
 eval := ""
 isBuild := false
+dns_cli := ../wireguard/bin/dns-cli
 
-.PHONY : run
-run :
-	lima nerdctl run -it --privileged \
-		--network=laboro \
-		--mount type=volume,source=laboro,destination=/mnt/laboro \
-		$(mount) \
-		--rm --name $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)
+.PHONY : new-%
+new-% : wg-svr docker-env
+	$(dns_cli) add $(lastword $(subst :, , $*))
+	$(dns_cli) key $*
+	$(MAKE) create-ctl isBuild=false tag=$(firstword $(subst :, , $*)) name=$(lastword $(subst :, , $*))
 
-.PHONY : create
-create :
-	lima nerdctl run -it --privileged \
-		--network=laboro \
-		--mount type=volume,source=laboro,destination=/mnt/laboro \
-		$(mount) \
-		--name $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)
+.PHONY : run-%
+run-% : wg-svr xorg-forward docker-env
+	$(dns_cli) key $*
+	lima nerdctl container start -a $*
 
-.PHONY : docker-env
-docker-env : docker-network docker-volume
+.PHONY : run-%
+del-% :
+	$(dns_cli) del $*
+	lima nerdctl container rm $*
 
 .PHONY : %-image
 %-image : docker-env images/%-image
@@ -52,10 +50,18 @@ create-image-% :
 	mkdir -p /tmp/lima/laborbenko/etc
 #	cp -r etc/* /tmp/lima/laborbenko/etc/
 	cp -r layers/* /tmp/lima/laborbenko/etc/
-	$(MAKE) create name=laborbenko-$*-image mode=-it mount="-v /tmp/lima/laborbenko/etc:/etc/laborbenko" layer=$* isBuild=true tag=$(tag)
+	$(MAKE) create-ctl name=laborbenko-$*-image mode=-it mount="-v /tmp/lima/laborbenko/etc:/etc/laborbenko" layer=$* isBuild=true tag=$(tag)
 	lima nerdctl commit laborbenko-$*-image laborbenko:$*
 	lima nerdctl container rm laborbenko-$*-image
 	@touch images/$*-image
+
+.PHONY : create-ctl
+create-ctl :
+	lima nerdctl run -it --privileged --ulimit nofile=1024000:1024000 \
+		--network=laboro \
+		--mount type=volume,source=laboro,destination=/mnt/laboro \
+		$(mount) \
+		--name $(name) --hostname $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)
 
 .ssh :
 	cp -r ~/.ssh .ssh
@@ -67,6 +73,13 @@ bin : entrypoint wireguard
 	mkdir -p bin
 	cp entrypoint bin/
 	cp wireguard/bin/* bin/
+
+.PHONY : docker-env
+docker-env : lima docker-network docker-volume
+
+.PHONY :
+lima :
+	@if [ "Running" != "$$(limactl list -f {{.Status}})" ]; then limactl start default; fi
 
 RESULT := $(shell lima nerdctl network ls --format '{{.Name}}' | grep laboro)
 .PHONY : docker-network
@@ -81,6 +94,16 @@ docker-volume :
 ifeq ($(RESULT),)
 	lima nerdctl volume create laboro
 endif
+
+.PHONY : wg-svr
+wg-svr :
+	@if [ $$(ps aux | grep '[d]ns-svr'|wc -l) -le 0 ]; \
+		then bash -c "sudo nohup ./../wireguard/start-svr &"; fi
+
+.PHONY : xorg-forward
+xorg-forward :
+	[ -z "$(lima nerdctl container ls --format '{{.Names}}' | grep xorg-forward)" ] \
+		&& cd ../xorg-forward && $(MAKE) run
 
 .PHONY : clean
 clean :
