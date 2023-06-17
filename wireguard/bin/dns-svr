@@ -1,17 +1,21 @@
 #!/bin/bash
 
-set -e
+
 
 rm -rf /tmp/dns_svr
 mkfifo -m 666 /tmp/dns_svr
+scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 
 #HOSTS=hosts
 HOSTS=/etc/hosts
+Allowed="10.254.0.0/16"
 
 function loop {
     while true;
     do
+        # nc -u -l -k 127.0.0.1 59999
         read -r cmd arg1 arg2 < /tmp/dns_svr
+        echo "cmd:$cmd"
         case $cmd in
          add)
              add "$arg1" "$arg2"
@@ -21,6 +25,9 @@ function loop {
              ;;
          clear)
              clear
+             ;;
+         key)
+             key "$arg1"
              ;;
          stop)
              exit 0
@@ -34,6 +41,8 @@ function loop {
 function add {
     local name="$1"
     local ip="$2"
+
+    [ -z "$ip" ] && ip="$($scriptDir/alloc-ip $name)"
     echo "$ip $name #dns-svr" >> $HOSTS
 }
 
@@ -46,4 +55,12 @@ function clear {
     sed -i .bak "/#dns-svr/d" $HOSTS
 }
 
+function key {
+    local name=$1
+    local key="$($scriptDir/alloc-key $name)"
+    local pub="$(wg pubkey <<< $key)"
+    wg set utun3 peer "$pub" allowed-ips "$Allowed"
+}
+
 loop
+rm -rf /tmp/dns_svr

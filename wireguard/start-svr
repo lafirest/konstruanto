@@ -1,6 +1,8 @@
 #!/bin/bash
 
-cp etc/wgsvr.conf /etc/wireguard/
+scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+
+cp $scriptDir/etc/wgsvr.conf /etc/wireguard/
 wg-quick up wgsvr
-./bin/dns-svr
-wg-quick stop wgsvr
+$scriptDir/bin/dns-svr
+wg-quick down wgsvr
