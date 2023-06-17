@@ -1,3 +1,8 @@
 images
+images/*
 bin
+bin/*
 .ssh
+.ssh/*
+wireguard
+wireguard/*
