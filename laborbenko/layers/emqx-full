@@ -1,0 +1,3 @@
+set-env firest PROFILE emqx-enterprise
+run_as firest 'cd /home/firest/emqx && make'
+clean-tmp

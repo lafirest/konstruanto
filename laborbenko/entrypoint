@@ -2,10 +2,13 @@
 
 set -e
 
+## update window name
+echo -ne "\033]0; $(hostname) \007"
+
 #ETC_DIR=etc
 ETC_DIR=/etc/laborbenko
 RETRY=3
-ENV=DISPLAY,http_proxy,https_proxy,BASH_FUNC_clone%%
+ENV=DISPLAY,CCACHE_DIR,http_proxy,https_proxy,BASH_FUNC_clone%%,BASH_FUNC_set-env%%
 
 function run_as {
     local user=$1
@@ -14,7 +17,10 @@ function run_as {
 }
 
 function apt {
-    command apt -o Acquire::http::proxy=false "$@"
+    command apt -o Acquire::http::proxy=false \
+                -o APT::Install-Recommends=false \
+                -o APT::Install-Suggests=false \
+                "$@"
 }
 
 function load_layer {
@@ -28,10 +34,29 @@ function clone {
     git clone --depth 1 "$repo"
     cd "$dir"
     git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
-
 }
 
 export -f clone
+
+function set-env {
+    local user=$1
+    local name=$2
+    local value="$3"
+    export "$name"="$value"
+    export ENV="$ENV,$2"
+    run_as "$user" "export $name=$value"
+    run_as "$user" "echo export $name=$value >> ~/.bashrc"
+}
+
+export -f set-env
+
+function clean-tmp {
+    apt clean
+    apt autoremove --yes
+    rm -rf /tmp
+    rm -rf /var/lib/apt/lists/*
+    find /var | grep '\.log$' | xargs rm -v
+}
 
 # automatically retry N times after failure
 function with_retry {
@@ -89,22 +114,25 @@ function exec_cmds {
     local file=$2
     local cmds=( )
 
+    ## if there is a valid layer, load it
+    ## otherwise, treat this script as a login process
+    ## and override the IS_BUILD value or the container will immediately exit
     if [ -n "$file" ]; then
         # no readarry in Mac
         while IFS='' read -r line; do
             cmds+=( "$line" )
         done < "$file"
+    else
+        IS_BUILD=0
+        return 0
     fi
 
     recoverable_exec_cmds "$layer" "${cmds[@]}"
 }
 
-while getopts “i:l:e:b:” argv
+while getopts “l:e:b:” argv
 do
      case $argv in
-         i)
-             CLI_IP=$OPTARG
-             ;;
          l)
              LAYER=$OPTARG
              ;;
@@ -118,8 +146,6 @@ do
          ;;
      esac
 done
-
-[ -n "$CLI_IP" ] && sed -i "s/Address =.*/Address = $CLI_IP\\/16/" /etc/wireguard/wgcli.conf
 
 [ -n "$LAYER" ] && [ "init" != "$LAYER" ] && exec_cmds "$LAYER" "$ETC_DIR/$LAYER"
 
@@ -135,10 +161,6 @@ if $IS_BUILD; then
     exit 0
 fi
 
-if [ -x "$(command -v wg-quick)" ]; then
-    ip="$(grep -oE -m 1 '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' /etc/wireguard/wgcli.conf)"
-    echo "Wireguard client ip is:$ip"
-    wg-quick up wgcli
-fi
+[ -x "$(command -v wg)" ] && setup-wg
 
 su -w $ENV -s /bin/bash - firest

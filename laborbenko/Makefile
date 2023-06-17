@@ -1,17 +1,16 @@
-qiname := laboro
+name := laboro
 tag := init
 layer := init
-ip := "10.255.0.2"
 eval := ""
 isBuild := false
 
 .PHONY : run
-run : docker-env
+run :
 	lima nerdctl run -it --privileged \
 		--network=laboro \
 		--mount type=volume,source=laboro,destination=/mnt/laboro \
 		$(mount) \
-		--rm --name $(name) laborbenko:$(tag) -l $(layer) -i $(ip) -e $(eval) -b $(isBuild)
+		--rm --name $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)
 
 .PHONY : create
 create :
@@ -19,7 +18,7 @@ create :
 		--network=laboro \
 		--mount type=volume,source=laboro,destination=/mnt/laboro \
 		$(mount) \
-		--name $(name) laborbenko:$(tag) -l $(layer) -i $(ip) -e $(eval) -b $(isBuild)
+		--name $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)
 
 .PHONY : docker-env
 docker-env : docker-network docker-volume
@@ -28,46 +27,46 @@ docker-env : docker-network docker-volume
 %-image : docker-env images/%-image
 	@
 
-images/emqx-image : images/erlang-image
+images/emqx-light-image : layers/emqx-light images/emqx-image
+	$(MAKE) create-image-emqx-light tag=emqx
+
+images/emqx-full-image : layers/emqx-full images/emqx-image
+	$(MAKE) create-image-emqx-full tag=emqx
+
+images/emqx-image : layers/emqx images/erlang-image
 	$(MAKE) create-image-emqx tag=erlang
 
-images/erlang-image : images/base-image
+images/erlang-image : layers/erlang images/base-image
 	$(MAKE) create-image-erlang tag=base
 
-images/base-image : images/init-image
+images/base-image : layers/base images/init-image
 	$(MAKE) create-image-base tag=init
 
-create-image-% : ip := $(shell wireguard/bin/alloc_ip true)
-create-image-% : etc/%
-	@echo "building the image: $*"
-	mkdir -p /tmp/lima/laborbenko
-	rm -rf /tmp/lima/laborbenko/etc
-	cp -r etc /tmp/lima/laborbenko/etc
-	$(MAKE) create name=laborbenko-$*-image mode=-it mount="-v /tmp/lima/laborbenko/etc:/etc/laborbenko" layer=$* isBuild=true ip=$(ip) tag=$(tag)
-	lima nerdctl commit laborbenko-$*-image laborbenko:$*
-	lima nerdctl container rm laborbenko-$*-image
-	@touch images/$*-image
-
-images/init-image: .ssh wireguard Dockerfile entrypoint
+images/init-image: .ssh etc Dockerfile bin
 	lima nerdctl build -t laborbenko:init .
 	@touch $@
 
-.PHONY : %-image-test
-%-image-test : images/%-image-test
-	@
-
-images/%-image-test :
+create-image-% :
 	@echo "building the image: $*"
-	mkdir -p /tmp/lima/laborbenko
 	rm -rf /tmp/lima/laborbenko/etc
-	cp -r etc /tmp/lima/laborbenko/etc
-	$(MAKE) create name=laborbenko-$*-image mode=-it mount="-v /tmp/lima/laborbenko/etc:/etc/laborbenko"
+	mkdir -p /tmp/lima/laborbenko/etc
+#	cp -r etc/* /tmp/lima/laborbenko/etc/
+	cp -r layers/* /tmp/lima/laborbenko/etc/
+	$(MAKE) create name=laborbenko-$*-image mode=-it mount="-v /tmp/lima/laborbenko/etc:/etc/laborbenko" layer=$* isBuild=true tag=$(tag)
+	lima nerdctl commit laborbenko-$*-image laborbenko:$*
+	lima nerdctl container rm laborbenko-$*-image
+	@touch images/$*-image
 
 .ssh :
 	cp -r ~/.ssh .ssh
 
 wireguard :
 	cp -r ../wireguard wireguard
+
+bin : entrypoint wireguard
+	mkdir -p bin
+	cp entrypoint bin/
+	cp wireguard/bin/* bin/
 
 RESULT := $(shell lima nerdctl network ls --format '{{.Name}}' | grep laboro)
 .PHONY : docker-network
@@ -88,6 +87,7 @@ clean :
 	rm -rf wireguard
 	rm -rf .ssh
 	rm -rf /tmp/lima/laborbenko/etc
+	rm -rf bin
 
 .PHONY : clean-al
 clean-all : clean

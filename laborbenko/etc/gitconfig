@@ -1,0 +1,6 @@
+[user]
+	name = firest
+	email = enlanubo@gmail.com
+
+[core] 
+    editor = emacs -nw
