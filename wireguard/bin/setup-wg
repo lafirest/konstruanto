@@ -14,4 +14,4 @@ wg set wgcli \
    endpoint "$Endpoint" \
    allowed-ips "$Allowed" \
    persistent-keepalive $PersistentKeepalive
-ip link set up dev wgcli
+ip link set dev wgcli up

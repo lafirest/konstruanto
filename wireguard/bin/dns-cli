@@ -1,4 +1,10 @@
 #!/bin/bash
 
 # echo "$*" > /dev/udp/127.0.0.1/59999
-echo "$*" >> /tmp/dns_svr
+
+PID=/var/run/dns-svr.pid
+if [ -e "$PID" ]; then
+    echo "$*" >> /tmp/dns_svr
+else
+    echo "No DNS server"
+fi
