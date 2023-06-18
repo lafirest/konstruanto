@@ -1,7 +1,7 @@
 images
 images/*
-bin
-bin/*
+cli-bin
+cli-bin/*
 .ssh
 .ssh/*
 wireguard

@@ -1,5 +1,6 @@
 FROM debian:testing-slim
-RUN useradd -m -p 19910306 firest \
+RUN passwd -d root
+    && useradd -m -p 19910306 firest \
     && mkdir -p /mnt/laboro \
     && chown firest:firest /mnt/laboro \
     && runuser - firest -c 'mkdir -p ~/.local/bin' \
@@ -11,5 +12,5 @@ ENV DISPLAY=xorg-forward:0 \
     CCACHE_DIR=/mnt/laboro/ccache
 COPY --chown=firest:firest .ssh /home/firest/.ssh
 COPY --chown=firest:firest etc/gitconfig /home/firest/.gitconfig
-COPY bin/* /usr/bin/
+COPY cli-bin/* /usr/bin/
 ENTRYPOINT ["entrypoint"]

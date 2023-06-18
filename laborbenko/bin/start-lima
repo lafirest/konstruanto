@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function is_ready {
+    [ "Running" == "$(limactl list -f {{.Status}})" ]
+}
+
+if ! is_ready ; then
+    echo "Waiting for lima ready"
+    nohup limactl start default > /dev/null 2>&1 &
+    while ! is_ready;
+    do
+        sleep 1
+    done
+    echo "lima is ready"
+fi
