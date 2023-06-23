@@ -1,9 +1,11 @@
 #load_layer erlang
+apt update
 apt install -y curl
 apt install -y unzip
 apt install -y cmake
 apt install -y autoconf
 apt install -y libtool
 run_as firest clone /home/firest/emqx git@github.com:emqx/emqx.git
+run_as firest 'cd /home/firest/emqx && ./scripts/gen-erlang-ls-config.sh > erlang_ls.config'
 set-env firest EMQX_DASHBOARD__DEFAULT_PASSWORD 111111
 clean-tmp

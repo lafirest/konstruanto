@@ -8,7 +8,7 @@ echo -ne "\033]0; $(hostname) \007"
 #ETC_DIR=etc
 ETC_DIR=/etc/laborbenko
 RETRY=3
-ENV=DISPLAY,CCACHE_DIR,http_proxy,https_proxy,BASH_FUNC_clone%%,BASH_FUNC_set-env%%
+ENV=CCACHE_DIR,http_proxy,https_proxy,BASH_FUNC_clone%%,BASH_FUNC_set-env%%
 
 function run_as {
     local user=$1
@@ -53,7 +53,7 @@ export -f set-env
 function clean-tmp {
     apt clean
     apt autoremove --yes
-    rm -rf /tmp
+    rm -rf /tmp/*
     rm -rf /var/lib/apt/lists/*
     find /var | grep '\.log$' | xargs rm -v
 }
@@ -163,4 +163,4 @@ fi
 
 [ -x "$(command -v wg)" ] && setup-wg
 
-su -w $ENV -s /bin/bash - firest
+exec su -w $ENV -s /bin/bash -c "tty-proxy" - firest

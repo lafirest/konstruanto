@@ -15,7 +15,7 @@ new-% : wg-svr docker-env
 	@$(MAKE) create-ctl isBuild=false tag=$(tag) name=$(name)
 
 .PHONY : run-%
-run-% : wg-svr xorg-forward docker-env
+run-% : wg-svr docker-env
 	@$(dns_cli) key $*
 	@lima nerdctl container start -a $*
 
@@ -99,19 +99,9 @@ ifeq ($(RESULT),)
 	lima nerdctl volume create laboro
 endif
 
-DNS_PID=/var/run/dns-svr.pid
 .PHONY : wg-svr
 wg-svr :
-	@[ $! -e $(DNS_PID) ] && sudo nohup ./../wireguard/start-svr >/dev/null 2>&1 &
-
-.PHONY : xorg-forward
-xorg-forward :
-	@if [ -z "$$(lima nerdctl container ls --format '{{.Names}}' | grep xorg-forward)" ]; \
-		then \
-			lima nerdctl container rm xorg-forward \
-			&& cd ../xorg-forward \
-			&& $(MAKE) run; \
-	fi
+	@./bin/start-wg-svr
 
 .PHONY : clean
 clean :
