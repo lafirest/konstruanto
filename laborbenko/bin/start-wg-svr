@@ -1,0 +1,21 @@
+#!/bin/bash
+
+DNS_PID=/var/run/dns-svr.pid
+function is_ready {
+    if [ -e $DNS_PID ]; then
+        local PID=$(cat $DNS_PID)
+        return $(ps -p $PID > /dev/null)
+    else
+        return 1
+    fi
+}
+
+if ! is_ready ; then
+    echo "Waiting for DNS server ready"
+    nohup sudo ./../wireguard/start-svr >/dev/null 2>&1 &
+    while ! is_ready;
+    do
+        sleep 1
+    done
+    echo "DNS server is ready"
+fi
