@@ -2,8 +2,8 @@ images
 images/*
 cli-bin
 cli-bin/*
-.ssh
-.ssh/*
+ssh
+ssh/*
 wireguard
 wireguard/*
 nohup.out

@@ -163,4 +163,5 @@ fi
 
 [ -x "$(command -v wg)" ] && setup-wg
 
-exec su -w $ENV -s /bin/bash -c "tty-proxy" - firest
+tty-proxy
+exec su -w $ENV -s /bin/bash - firest

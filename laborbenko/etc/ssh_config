@@ -1,0 +1,5 @@
+Host github.com
+    Hostname ssh.github.com
+    Port 443
+    User git
+    ProxyCommand socat - PROXY:host.docker.internal:%h:%p,proxyport=20172

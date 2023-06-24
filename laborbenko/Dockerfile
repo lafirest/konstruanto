@@ -9,7 +9,7 @@ RUN passwd -d root \
 ENV http_proxy=http://host.docker.internal:20172 \
     https_proxy=http://host.docker.internal:20172 \
     CCACHE_DIR=/mnt/laboro/ccache
-COPY --chown=firest:firest .ssh /home/firest/.ssh
+COPY --chown=firest:firest ssh /home/firest/.ssh
 COPY --chown=firest:firest etc/gitconfig /home/firest/.gitconfig
 COPY cli-bin/* /usr/bin/
 ENTRYPOINT ["entrypoint"]

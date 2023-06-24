@@ -44,7 +44,7 @@ images/erlang-image : layers/erlang images/base-image
 images/base-image : layers/base images/init-image
 	$(MAKE) create-image-base tag=init
 
-images/init-image: .ssh etc Dockerfile cli-bin
+images/init-image: ssh etc Dockerfile cli-bin
 	lima nerdctl build -t laborbenko:init .
 	@touch $@
 
@@ -67,8 +67,9 @@ create-ctl :
 			$(mount) \
 			--name $(name) --hostname $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)
 
-.ssh :
-	cp -r ~/.ssh .ssh
+ssh : etc/ssh_config
+	cp -r ~/.ssh ssh
+	cp etc/ssh_config ssh/config
 
 wireguard :
 	cp -r ../wireguard wireguard
@@ -106,7 +107,7 @@ wg-svr :
 .PHONY : clean
 clean :
 	rm -rf wireguard
-	rm -rf .ssh
+	rm -rf ssh
 	rm -rf /tmp/lima/laborbenko/etc
 	rm -rf cli-bin
 
