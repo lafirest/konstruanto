@@ -1,65 +1,27 @@
 #!/bin/bash
 
-## a persistent tty proxy for socat
+# persistent port
+CMD_PORT=59998
 
-PORT=59999
+# shell port
+SHELL_PORT=59999
 FILE=$(mktemp)
-rm -rf "$FILE"
-mkfifo "$FILE"
+ENV='CCACHE_DIR,http_proxy,https_proxy,BASH_FUNC_clone%%,BASH_FUNC_set-env%%'
+CMD="su -w $ENV -s /bin/bash - firest"
 
-## SELF="$0"
-# ## read from bash return, and out to tty
-# function read-cmd-loop {
-#     local INPUT="$1"
-#     while true
-#     do
-#         if read -r line
-#         then
-#             printf "$line\n" >/dev/tty
-#             printf "$line\n"
-#         else
-#             sleep 1
-#         fi
-#     done < "$INPUT"
-# }
-
-
-# ## only read can work, tail and cat not
-# function read-loop {
-#     local INPUT="$1"
-#     read-cmd-loop "$INPUT" &
-#     while true
-#     do
-#         if read -r line
-#         then
-#             printf "$line\n" >/dev/tty
-#         else
-#             sleep 1
-#         fi
-#     done
-# }
-
-
-function entry {
-    local INPUT="$1"
-    socat -u TCP-LISTEN:$PORT,reuseaddr,fork,forever SYSTEM:"cat > $FILE" &
-    LISTENER=$!
-
-    ## erl can't work with pty, cty, and only supports duplex channels,
-    ## although it can work through read-loop, but the display effect is not good
-    ##socat SYSTEM:"$SELF read $INPUT" SYSTEM:bash,pty,ctty &
-
-    ## -F work on Macos but debain not, it is opposite for the below code
-    socat -u SYSTEM:"tail -f $FILE --retry -n 1 2>/dev/null" EXEC:bash
-
-    EXIT=$?
-
-    kill $LISTENER 2>/dev/null
-
-    ## if is not exit with 0, start a new bash to take over
-    [ $EXIT = 0 ] && exit 0
-    echo "transprenante"
-    exec bash
+function forever_pipe {
+    while true
+    do
+        socat -u -s PIPE:$FILE EXEC:"'$CMD'" 2>/dev/null
+    done
 }
 
-entry "$FILE"
+## CMD Proxy
+rm -rf "$FILE"
+socat -u TCP-LISTEN:$CMD_PORT,reuseaddr,fork,forever PIPE:$FILE 2>/dev/null &
+forever_pipe &
+
+## SHELL Proxy
+socat TCP-LISTEN:$SHELL_PORT,reuseaddr,fork,forever EXEC:"'$CMD'",pty,ctty,echo=0 2>/dev/null &
+
+socat -u $(tty) /dev/pts/0 &
