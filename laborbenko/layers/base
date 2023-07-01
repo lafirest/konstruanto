@@ -15,6 +15,7 @@ apt install -y wireguard-tools
 apt install -y fonts-firacode
 apt install -y xxd
 apt -y install socat
+apt -y install rsync
 #apt install iputils-ping -y
 #run_as firest clone /home/firest/.emacs.d git@github.com:lafirest/.emacs.d.git
 #run_as firest emacs --batch -l /home/firest/.emacs.d/init.el

@@ -5,6 +5,8 @@ apt install -y unzip
 apt install -y cmake
 apt install -y autoconf
 apt install -y libtool
+apt install -y libkrb5-dev
+apt install -y libsasl2-dev
 run_as firest clone /home/firest/emqx git@github.com:emqx/emqx.git
 run_as firest 'cd /home/firest/emqx && git remote add firest git@github.com:lafirest/emqx.git'
 run_as firest 'cd /home/firest/emqx && git fetch origin --tags'
