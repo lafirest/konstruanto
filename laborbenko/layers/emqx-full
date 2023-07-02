@@ -1,4 +1,4 @@
 apt-get install -y libkrb5-dev
-set-env firest PROFILE emqx-enterprise
-run_as firest 'cd /home/firest/emqx && make'
+set-env  PROFILE emqx-enterprise
+run_in emqx make
 clean-tmp

@@ -1,6 +1,6 @@
-set-env firest EMQX_DB__BACKEND "mnesia"
-set-env firest BUILD_WITHOUT_QUIC 1
-set-env firest BUILD_WITHOUT_JQ 1
-set-env firest PROFILE emqx
-run_as firest 'cd /home/firest/emqx && make'
+set-env  EMQX_DB__BACKEND "mnesia"
+set-env  BUILD_WITHOUT_QUIC 1
+set-env  BUILD_WITHOUT_JQ 1
+set-env  PROFILE emqx
+run_in emqx make
 clean-tmp

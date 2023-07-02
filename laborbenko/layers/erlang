@@ -3,23 +3,24 @@ apt update
 apt install -y libncurses5-dev
 apt install -y libssl-dev
 
-run_as firest 'cd /home/firest && curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl'
-run_as firest chmod +x /home/firest/kerl
-run_as firest 'cd /home/firest && ./kerl build git git@github.com:emqx/otp.git emqx-OTP-25.3.2 25.3.2'
-run_as firest 'cd /home/firest && ./kerl install 25.3.2 .erl && chmod +x .erl/activate*'
-run_as firest 'cd /home/firest && . .erl/activate && echo . . /home/firest/.erl/activate >> .profile'
-run_as firest 'cd /home/firest && rm -rf kerl && rm -rf .kerl'
+run_as  curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
+run_as  chmod +x ker
+run_as  ./kerl build git git@github.com:emqx/otp.git emqx-OTP-25.3.2 25.3.2
+run_as  ./kerl install 25.3.2 .erl
+run_as chmod +x .erl/activate*
+run_as  'echo . /home/firest/.erl/activate >> .profile'
+run_as  'echo . /home/firest/.erl/activate >> .bashrc'
+run_as  '. .erl/activate'
+run_as  'rm -rf kerl && rm -rf .kerl'
 
-run_as firest 'cd /home/firest/.local/bin && curl -O https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3'
+run_in  '.local/bin'  'curl -O https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3'
 
-run_as firest clone /home/firest/erlang_ls https://github.com/erlang-ls/erlang_ls.git
-run_as firest 'cd /home/firest/erlang_ls && PREFIX=/home/firest/.local make install'
-#run_as firest 'cd /home/firest/erlang_ls && make clean'
-rm -rf /home/firest/erlang_ls
+run_as  clone erlang_ls https://github.com/erlang-ls/erlang_ls.git
+run_in erlang_ls  PREFIX=/home/firest/.local make install
+run_as rm -rf erlang_ls
 
-run_as firest clone /home/firest/erlfmt https://github.com/WhatsApp/erlfmt.git
-run_as firest 'cd /home/firest/erlfmt && make release && cp _build/release/bin/erlfmt /home/firest/.local/bin/'
-#run_as firest 'cd /home/firest/erlfmt && make clean'
-rm -rf /home/firest/erlfmt
+run_as  clone erlfmt https://github.com/WhatsApp/erlfmt.git
+run_in erlfmt 'make release && cp _build/release/bin/erlfmt /home/firest/.local/bin/'
+run_as rm -rf erlfmt
 
 clean-tmp
