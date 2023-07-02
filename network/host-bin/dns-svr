@@ -1,0 +1,87 @@
+#!/bin/bash
+
+scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+
+HOSTS=/etc/hosts
+RADIKO=/var/run/dns-svr
+PID="$RADIKO/pid"
+CMD="$RADIKO/cmd"
+
+mkdir -p "$RADIKO"
+
+function loop {
+    while true;
+    do
+        read -r cmd arg1 arg2 < "$CMD"
+        case $cmd in
+         add)
+             add "$arg1" "$arg2"
+             ;;
+         del)
+             delete "$arg1"
+             ;;
+         clear)
+             clear
+             ;;
+         key)
+             key "$arg1"
+             ;;
+         stop)
+             on_stop
+             exit 0
+             ;;
+         ?)
+         ;;
+     esac
+    done
+}
+
+function add {
+    local name="$1"
+    local ip="$2"
+    local retry=3
+
+    if [ -z "$ip" ]
+    then
+        for (( i=0; i<retry; i++ ))
+        do
+            ip=$(docker container inspect --format '{{ .NetworkSettings.Networks.laboro.IPAddress }}' $name)
+            if [ -n "$ip" ]
+            then
+                break
+            fi
+            sleep 1
+        done
+    fi
+    delete "$name"
+    echo "$ip $name #dns-svr" >> $HOSTS
+}
+
+function delete {
+    local name="$1"
+    sed -i "/$name #dns-svr/d" $HOSTS
+}
+
+function clear {
+    sed -i "/#dns-svr/d" $HOSTS
+}
+
+function on-stop {
+    rm -f "$CMD"
+    rm -f "$PID"
+    exit 0
+}
+
+trap on-stop INT TERM EXIT
+[ -e "$PID" ] && (kill -2 `cat "$PID"` || on-stop)
+
+while [ -e "$PID" ];
+do
+    sleep 1
+done
+echo $$ > "$PID"
+
+rm -rf "$CMD"
+mkfifo -m 666 "$CMD"
+
+loop

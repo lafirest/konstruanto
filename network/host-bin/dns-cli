@@ -1,0 +1,11 @@
+#!/bin/bash
+
+RADIKO=/var/run/dns-svr
+PID="$RADIKO/pid"
+CMD="$RADIKO/cmd"
+
+if [ -e "$PID" ]; then
+    echo "$*" >> "$CMD"
+else
+    echo "No DNS server"
+fi

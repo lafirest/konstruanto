@@ -1,0 +1,27 @@
+#!/sbin/openrc-run
+
+checkconfig() {
+
+        SVR=/home/firest/laboro/konstruanto/network/host-bin/dns-svr
+        RADIKO=/var/run/dns-svr
+        PID="$RADIKO/pid"
+
+        return 0
+}
+
+start() {
+        checkconfig || return 1
+        ebegin "Starting Laboro DNS Server"
+        start-stop-daemon --start  \
+        --background \
+        --pidfile ${PID} \
+        --exec ${SVR}
+        eend $?
+}
+
+stop() {
+        checkconfig || return 1
+        ebegin "Stopping Lbaoro DNS Server"
+        start-stop-daemon --stop --pidfile ${PID}
+        eend $?
+}

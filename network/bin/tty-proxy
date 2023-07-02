@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# persistent port
+CMD_PORT=59998
+
+# shell port
+SHELL_PORT=59999
+FILE=$(mktemp)
+ENV='CCACHE_DIR,http_proxy,https_proxy,BASH_FUNC_clone%%,BASH_FUNC_set-env%%'
+CMD="su -w $ENV -s /bin/bash - firest"
+
+function forever_pipe {
+    while true
+    do
+        socat -u -s PIPE:$FILE EXEC:"'$CMD'" 2>/dev/null
+    done
+}
+
+## CMD Proxy
+rm -rf "$FILE"
+socat -u TCP-LISTEN:$CMD_PORT,reuseaddr,fork,forever PIPE:$FILE 2>/dev/null &
+forever_pipe &
+
+## SHELL Proxy
+socat TCP-LISTEN:$SHELL_PORT,reuseaddr,fork,forever EXEC:"'$CMD'",pty,ctty,echo=0 2>/dev/null &
+
+socat -u $(tty) /dev/pts/0 &
