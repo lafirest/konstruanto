@@ -17,13 +17,13 @@ new-% : wg-svr docker-env
 .PHONY : run-%
 run-% : wg-svr docker-env
 	@$(dns_cli) key $*
-	@lima nerdctl container start -a $*
+	@docker container start -a $*
 
 .PHONY : del-%
 del-% :
 	@echo "forigant labrobenko:$*"
 	@$(dns_cli) del $*
-	@lima nerdctl container rm $*
+	@docker container rm $*
 
 .PHONY : %-image
 %-image : docker-env images/%-image
@@ -45,7 +45,7 @@ images/base-image : layers/base images/init-image
 	$(MAKE) create-image-base tag=init
 
 images/init-image: ssh etc Dockerfile cli-bin
-	lima nerdctl build -t laborbenko:init .
+	docker build -t laborbenko:init .
 	@touch $@
 
 create-image-% :
@@ -55,13 +55,13 @@ create-image-% :
 #	cp -r etc/* /tmp/lima/laborbenko/etc/
 	cp -r layers/* /tmp/lima/laborbenko/etc/
 	$(MAKE) create-ctl name=laborbenko-$*-image mode=-it mount="-v /tmp/lima/laborbenko/etc:/etc/laborbenko" layer=$* isBuild=true tag=$(tag)
-	lima nerdctl commit laborbenko-$*-image laborbenko:$*
-	lima nerdctl container rm laborbenko-$*-image
+	docker commit laborbenko-$*-image laborbenko:$*
+	docker container rm laborbenko-$*-image
 	@touch images/$*-image
 
 .PHONY : create-ctl
 create-ctl :
-	@lima nerdctl run -it --privileged --ulimit nofile=1024000:1024000 \
+	@docker run -it --privileged --ulimit nofile=1024000:1024000 \
 			--network=laboro \
 			--mount type=volume,source=laboro,destination=/mnt/laboro \
 			$(mount) \
@@ -86,18 +86,18 @@ docker-env : lima docker-network docker-volume
 lima :
 	@./bin/start-lima
 
-RESULT := $(shell lima nerdctl network ls --format '{{.Name}}' | grep laboro)
+RESULT := $(shell docker network ls --format '{{.Name}}' | grep laboro)
 .PHONY : docker-network
 docker-network :
 ifeq ($(RESULT),)
-	lima nerdctl network create laboro
+	docker network create laboro
 endif
 
-RESULT := $(shell lima nerdctl volume ls --format '{{.Name}}' | grep laboro)
+RESULT := $(shell docker volume ls --format '{{.Name}}' | grep laboro)
 .PHONY : docker-volume
 docker-volume :
 ifeq ($(RESULT),)
-	lima nerdctl volume create laboro
+	docker volume create laboro
 endif
 
 .PHONY : wg-svr
