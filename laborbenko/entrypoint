@@ -9,16 +9,19 @@ echo -ne "\033]0; $(hostname) \007"
 ETC_DIR=/etc/laborbenko
 RETRY=3
 ENV=CCACHE_DIR,http_proxy,https_proxy,BASH_FUNC_clone%%,BASH_FUNC_set-env%%
+HOST_NAME="host.docker.internal"
+_HEJMO="/home/firest"
+_PROFILO="$_HEJMO/.profile"
 
 function run_as {
     local user=$1
     shift;
-    runuser -w $ENV -s /bin/bash - "$user" -c "$*"
+    BASH_ENV="$_PROFILO" runuser -s /bin/bash "$user" -c "$*"
 }
 
 function apt {
-    command apt -o Acquire::http::proxy=false \
-                -o APT::Install-Recommends=false \
+ ##  command apt -o Acquire::http::proxy=false \
+    command apt -o APT::Install-Recommends=false \
                 -o APT::Install-Suggests=false \
                 "$@"
 }
@@ -28,6 +31,7 @@ function load_layer {
 }
 
 function clone {
+    cd $_HEJMO
     local dir="$1"
     local repo="$2"
     rm -rf "$dir"
@@ -45,7 +49,7 @@ function set-env {
     export "$name"="$value"
     export ENV="$ENV,$2"
     run_as "$user" "export $name=$value"
-    run_as "$user" "echo export $name=$value >> ~/.bashrc"
+    run_as "$user" "echo export $name=$value >> $_PROFILO"
 }
 
 export -f set-env

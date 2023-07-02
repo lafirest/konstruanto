@@ -9,13 +9,14 @@ apt install -y git
 apt install -y ssh
 apt install -y ca-certificates
 apt install -y iproute2
-apt install -y wireguard-tools
+#apt install -y wireguard-tools
 #apt install -y emacs-gtk
 #apt install -y meld
-apt install -y fonts-firacode
+#apt install -y fonts-firacode
 apt install -y xxd
-apt -y install socat
-apt -y install rsync
+apt install -y socat
+apt install -y rsync
+apt install -y curl
 #apt install iputils-ping -y
 #run_as firest clone /home/firest/.emacs.d git@github.com:lafirest/.emacs.d.git
 #run_as firest emacs --batch -l /home/firest/.emacs.d/init.el

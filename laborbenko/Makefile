@@ -50,11 +50,10 @@ images/init-image: ssh etc Dockerfile cli-bin
 
 create-image-% :
 	@echo "building the image: $*"
-	rm -rf /tmp/lima/laborbenko/etc
-	mkdir -p /tmp/lima/laborbenko/etc
-#	cp -r etc/* /tmp/lima/laborbenko/etc/
-	cp -r layers/* /tmp/lima/laborbenko/etc/
-	$(MAKE) create-ctl name=laborbenko-$*-image mode=-it mount="-v /tmp/lima/laborbenko/etc:/etc/laborbenko" layer=$* isBuild=true tag=$(tag)
+	rm -rf tmp/laborbenko/etc/
+	mkdir -p tmp/laborbenko/etc/
+	cp -r layers/* tmp/laborbenko/etc/
+	$(MAKE) create-ctl name=laborbenko-$*-image mode=-it mount="-v $$(pwd)/tmp/laborbenko/etc:/etc/laborbenko" layer=$* isBuild=true tag=$(tag)
 	docker commit laborbenko-$*-image laborbenko:$*
 	docker container rm laborbenko-$*-image
 	@touch images/$*-image
@@ -64,6 +63,7 @@ create-ctl :
 	@docker run -it --privileged --ulimit nofile=1024000:1024000 \
 			--network=laboro \
 			--mount type=volume,source=laboro,destination=/mnt/laboro \
+			--add-host=host.docker.internal:host-gateway \
 			$(mount) \
 			--name $(name) --hostname $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)
 
@@ -80,11 +80,7 @@ cli-bin : entrypoint wireguard
 	cp wireguard/bin/* cli-bin/
 
 .PHONY : docker-env
-docker-env : lima docker-network docker-volume
-
-.PHONY :
-lima :
-	@./bin/start-lima
+docker-env : docker-network docker-volume
 
 RESULT := $(shell docker network ls --format '{{.Name}}' | grep laboro)
 .PHONY : docker-network
@@ -102,14 +98,15 @@ endif
 
 .PHONY : wg-svr
 wg-svr :
-	@./bin/start-wg-svr
+##	@./bin/start-wg-svr
+	echo ""
 
 .PHONY : clean
 clean :
 	rm -rf wireguard
 	rm -rf ssh
-	rm -rf /tmp/lima/laborbenko/etc
 	rm -rf cli-bin
+	rm -rf tmp
 
 .PHONY : clean-al
 clean-all : clean

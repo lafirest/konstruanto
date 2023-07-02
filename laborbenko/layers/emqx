@@ -11,5 +11,6 @@ run_as firest clone /home/firest/emqx git@github.com:emqx/emqx.git
 run_as firest 'cd /home/firest/emqx && git remote add firest git@github.com:lafirest/emqx.git'
 run_as firest 'cd /home/firest/emqx && git fetch origin --tags'
 run_as firest 'cd /home/firest/emqx && ./scripts/gen-erlang-ls-config.sh > erlang_ls.config'
+run_as firest 'cd /home/firest/emqx && '
 set-env firest EMQX_DASHBOARD__DEFAULT_PASSWORD 111111
 clean-tmp
