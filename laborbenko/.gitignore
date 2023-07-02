@@ -6,4 +6,5 @@ ssh
 ssh/*
 wireguard
 wireguard/*
+network
 nohup.out

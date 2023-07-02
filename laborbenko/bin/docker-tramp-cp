@@ -3,20 +3,13 @@
 Port=12000
 
 if [[ "$1" =~ ^(.*):/home/firest/(.*)$ ]]; then
-    echo "in 1 is $1" >> /tmp/lima/log
-    echo "in 2 is $2" >> /tmp/lima/log
     Address="${BASH_REMATCH[1]}"
     File="${BASH_REMATCH[2]}"
-    echo rsync -rt rsync://$Address:$Port/$File $2 >> /tmp/lima/log
-    rsync -rt rsync://$Address:$Port/$File $2
+    rsync --times --inplace rsync://$Address:$Port/$File $2
 elif [[ "$2" =~ ^(.*):/home/firest/(.*)$ ]]; then
     Address="${BASH_REMATCH[1]}"
     File="${BASH_REMATCH[2]}"
-    echo "1 is $1" >> /tmp/lima/log
-    echo "2 is $2" >> /tmp/lima/log
-    echo rsync -rt $1 rsync://$Address:$Port/$File >> /tmp/lima/log
-
-    rsync -rt $1 rsync://$Address:$Port/$File
+    rsync --times --inplace $1 rsync://$Address:$Port/$File
 else
     exit 1
 fi
