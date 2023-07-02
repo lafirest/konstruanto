@@ -62,6 +62,30 @@ function clean-tmp {
     find /var | grep '\.log$' | xargs rm -v
 }
 
+function init-rsync {
+    local repo="$1"
+    echo rsync --daemon >> $(whch autostart)
+    cat <<EOF  > /etc/rsyncd.conf
+uid = firest
+gid = firest
+port = 12000
+use chroot = no
+
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsync.log
+
+[$repo]
+        path = $_HEJMO/$repo
+        read only = no
+        timeout = 300
+        fake user = yes
+        exclude = _build .git
+    EOF
+}
+
+export -f init-rsync
+
 # automatically retry N times after failure
 function with_retry {
     local i=0
@@ -165,7 +189,5 @@ if $IS_BUILD; then
     exit 0
 fi
 
-[ -x "$(command -v wg)" ] && setup-wg
-
-tty-proxy
+autostart
 exec su -w $ENV -s /bin/bash - firest

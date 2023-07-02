@@ -13,4 +13,5 @@ run_as firest 'cd /home/firest/emqx && git fetch origin --tags'
 run_as firest 'cd /home/firest/emqx && ./scripts/gen-erlang-ls-config.sh > erlang_ls.config'
 run_as firest 'cd /home/firest/emqx && '
 set-env firest EMQX_DASHBOARD__DEFAULT_PASSWORD 111111
+init-rsync emqx
 clean-tmp
