@@ -2,9 +2,10 @@
 apt update
 apt install -y libncurses5-dev
 apt install -y libssl-dev
+apt install -y unixodbc-dev
 
 run_as  curl -O https://raw.githubusercontent.com/kerl/kerl/master/kerl
-run_as  chmod +x ker
+run_as  chmod +x kerl
 run_as  ./kerl build git git@github.com:emqx/otp.git emqx-OTP-25.3.2 25.3.2
 run_as  ./kerl install 25.3.2 .erl
 run_as chmod +x .erl/activate*

@@ -8,16 +8,28 @@ echo -ne "\033]0; $(hostname) \007"
 #ETC_DIR=etc
 ETC_DIR=/etc/laborbenko
 RETRY=3
-ENV=CCACHE_DIR,http_proxy,https_proxy,BASH_FUNC_clone%%,BASH_FUNC_set-env%%
-HOST_NAME="host.docker.internal"
+ENV=CCACHE_DIR,http_proxy,https_proxy,TZ,BASH_FUNC_set-env%%
 _HEJMO="/home/firest"
 _PROFILO="$_HEJMO/.profile"
+_RC="$_HEJMO/.bashrc"
+_UZANTO="firest"
 
 function run_as {
-    local user=$1
-    shift;
-    BASH_ENV="$_PROFILO" runuser -s /bin/bash "$user" -c "$*"
+    cd $_HEJMO
+    BASH_ENV="$_PROFILO" runuser -s /bin/bash "$_UZANTO" -c "$*"
 }
+
+export -f run_as
+
+function run_in {
+    local dir="$1"
+    shift;
+    cd $_HEJMO
+    cd $dir
+    BASH_ENV="$_PROFILO" runuser -s /bin/bash "$_UZANTO" -c "$*"
+}
+
+export -f run_in
 
 function apt {
  ##  command apt -o Acquire::http::proxy=false \
@@ -31,9 +43,9 @@ function load_layer {
 }
 
 function clone {
-    cd $_HEJMO
     local dir="$1"
     local repo="$2"
+    cd $_HEJMO
     rm -rf "$dir"
     git clone --depth 1 "$repo"
     cd "$dir"
@@ -43,13 +55,14 @@ function clone {
 export -f clone
 
 function set-env {
-    local user=$1
-    local name=$2
-    local value="$3"
+    local name=$1
+    local value="$2"
     export "$name"="$value"
-    export ENV="$ENV,$2"
-    run_as "$user" "export $name=$value"
-    run_as "$user" "echo export $name=$value >> $_PROFILO"
+    run_as "export $name=$value"
+    ## for login
+    run_as "echo export $name=$value >> $_PROFILO"
+    ## for non-login
+    run_as "echo export $name=$value >> $_RC"
 }
 
 export -f set-env
@@ -64,8 +77,8 @@ function clean-tmp {
 
 function init-rsync {
     local repo="$1"
-    echo rsync --daemon >> $(whch autostart)
-    cat <<EOF  > /etc/rsyncd.conf
+    echo rsync --daemon >> $(which autostart)
+    cat << EOF  > /etc/rsyncd.conf
 uid = firest
 gid = firest
 port = 12000
@@ -81,7 +94,7 @@ log file = /var/log/rsync.log
         timeout = 300
         fake user = yes
         exclude = _build .git
-    EOF
+EOF
 }
 
 export -f init-rsync

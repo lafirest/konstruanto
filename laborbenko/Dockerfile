@@ -8,7 +8,8 @@ RUN passwd -d root \
     && rm /etc/apt/sources.list.d/*
 ENV http_proxy=http://host.docker.internal:20172 \
     https_proxy=http://host.docker.internal:20172 \
-    CCACHE_DIR=/mnt/laboro/ccache
+    CCACHE_DIR=/mnt/laboro/ccache \
+    TZ=Asia/Shanghai
 COPY --chown=firest:firest ssh /home/firest/.ssh
 COPY --chown=firest:firest etc/gitconfig /home/firest/.gitconfig
 COPY cli-bin/* /usr/bin/
