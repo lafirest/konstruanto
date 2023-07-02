@@ -1,8 +1,0 @@
-#!/bin/bash
-## alloc an unique key to each container by its host/container name
-
-## Repeat to reduce collision
-name="$1$1$1$1"
-
-## wg private key
-(echo -n "$name" | sha256sum) | xxd -r -p -l 32 | base64

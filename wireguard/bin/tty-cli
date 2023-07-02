@@ -1,7 +1,0 @@
-#!/bin/bash
-
-HOST="$1"
-shift;
-CMD="$*"
-PORT=59999
-echo "$CMD" | socat -u - TCP-CONNECT:$HOST:$PORT

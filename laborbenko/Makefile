@@ -3,19 +3,18 @@ tag := init
 layer := init
 eval := ""
 isBuild := false
-dns_cli := ../wireguard/bin/dns-cli
+dns_cli := ../network/host-bin/dns-cli
 
 .PHONY : new-%
 new-%: name=$(lastword $(subst :, , $*))
 new-%: tag=$(firstword $(subst :, , $*))
-new-% : wg-svr docker-env
+new-% : docker-env
 	@echo "kreante laborbenko nomitan: $(name), bazu sur: $(tag)"
 	@$(dns_cli) add $(name)
-	@$(dns_cli) key $(name)
 	@$(MAKE) create-ctl isBuild=false tag=$(tag) name=$(name)
 
 .PHONY : run-%
-run-% : wg-svr docker-env
+run-% : docker-env
 	@$(dns_cli) key $*
 	@docker container start -a $*
 
@@ -71,13 +70,13 @@ ssh : etc/ssh_config
 	cp -r ~/.ssh ssh
 	cp etc/ssh_config ssh/config
 
-wireguard :
-	cp -r ../wireguard wireguard
+network :
+	cp -r ../network network
 
-cli-bin : entrypoint wireguard
+cli-bin : entrypoint network
 	mkdir -p cli-bin
 	cp entrypoint cli-bin/
-	cp wireguard/bin/* cli-bin/
+	cp network/bin/* cli-bin/
 
 .PHONY : docker-env
 docker-env : docker-network docker-volume
@@ -96,14 +95,9 @@ ifeq ($(RESULT),)
 	docker volume create laboro
 endif
 
-.PHONY : wg-svr
-wg-svr :
-##	@./bin/start-wg-svr
-	echo ""
-
 .PHONY : clean
 clean :
-	rm -rf wireguard
+	rm -rf network
 	rm -rf ssh
 	rm -rf cli-bin
 	rm -rf tmp
