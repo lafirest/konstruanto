@@ -5,11 +5,11 @@ Port=12000
 if [[ "$1" =~ ^(.*):/home/firest/(.*)$ ]]; then
     Address="${BASH_REMATCH[1]}"
     File="${BASH_REMATCH[2]}"
-    rsync --times --inplace rsync://$Address:$Port/$File $2
+    rsync --times --inplace --recursive rsync://$Address:$Port/$File $2
 elif [[ "$2" =~ ^(.*):/home/firest/(.*)$ ]]; then
     Address="${BASH_REMATCH[1]}"
     File="${BASH_REMATCH[2]}"
-    rsync --times --inplace $1 rsync://$Address:$Port/$File
+    rsync --times --inplace --recursive $1 rsync://$Address:$Port/$File
 else
     exit 1
 fi
