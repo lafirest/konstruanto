@@ -11,12 +11,16 @@ new-%: tag=$(firstword $(subst :, , $*))
 new-% : docker-env
 	@echo "kreante laborbenko nomitan: $(name), bazu sur: $(tag)"
 	@$(dns_cli) add $(name)
+	@$(MAKE) --silent yakuake-title name=$(name)
 	@$(MAKE) create-ctl isBuild=false tag=$(tag) name=$(name)
 
 .PHONY : run-%
+run-%: name=$*
 run-% : docker-env
-	@$(dns_cli) key $*
-	@docker container start -a $*
+	@$(dns_cli) add $(name)
+	@$(MAKE) --silent yakuake-title name=$(name)
+# nerdctl should use -a, but -ai for docker
+	@docker container start -ai $(name)
 
 .PHONY : del-%
 del-% :
@@ -94,6 +98,14 @@ docker-volume :
 ifeq ($(RESULT),)
 	docker volume create laboro
 endif
+
+.PHONY : yakuake-title
+yakuake-title:
+	@qdbus org.kde.yakuake \
+		/yakuake/tabs \
+		setTabTitle \
+		$$(qdbus org.kde.yakuake /yakuake/sessions activeSessionId) \
+		${name}
 
 .PHONY : clean
 clean :

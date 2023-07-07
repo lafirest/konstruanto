@@ -3,7 +3,7 @@
 set -e
 
 ## update window name
-echo -ne "\033]0; $(hostname) \007"
+## echo -ne "\033]0; $(hostname) \007"
 
 #ETC_DIR=etc
 ETC_DIR=/etc/laborbenko
