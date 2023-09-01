@@ -6,7 +6,7 @@ isBuild := false
 dns_cli := ../network/host-bin/dns-cli
 
 .PHONY : new-%
-new-%: name=$(lastword $(subst :, , $*))
+new-%: name=$(lastword $(subst :, , $*)).test
 new-%: tag=$(firstword $(subst :, , $*))
 new-% : docker-env
 	@echo "kreante laborbenko nomitan: $(name), bazu sur: $(tag)"
@@ -15,7 +15,7 @@ new-% : docker-env
 	@$(MAKE) create-ctl isBuild=false tag=$(tag) name=$(name)
 
 .PHONY : run-%
-run-%: name=$*
+run-%: name=$(*).test
 run-% : docker-env
 	@$(dns_cli) add $(name)
 	@$(MAKE) --silent yakuake-title name=$(name)
@@ -23,10 +23,22 @@ run-% : docker-env
 	@docker container start -ai $(name)
 
 .PHONY : del-%
+del-%: name=$(*).test
 del-% :
-	@echo "forigant labrobenko:$*"
-	@$(dns_cli) del $*
-	@docker container rm $*
+	@echo "forigant labrobenko:$(name)"
+	@$(dns_cli) del $(name)
+	@docker container rm $(name)
+
+.PHONY : del-%
+enter-%: name=$(*).test
+enter-% :
+	@echo "eniru la laborbenkon:$(name)"
+	@docker container exec -it -u firest -w /home/firest $(name) bash
+
+.PHONY : lsit
+list :
+	@echo "la laborbenkonj estas:"
+	@docker container ls -a --filter ancestor=laborbenko:base --format '{{.Names}}'
 
 .PHONY : %-image
 %-image : docker-env images/%-image
