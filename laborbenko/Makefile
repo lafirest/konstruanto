@@ -40,6 +40,14 @@ list :
 	@echo "la laborbenkonj estas:"
 	@docker container ls -a --filter ancestor=laborbenko:base --format '{{.Names}}'
 
+.PHONY : fork-%
+fork-%: name=$(lastword $(subst :, , $*))
+fork-%: tag=$(firstword $(subst :, , $*))
+fork-% :
+	@echo "generante la idon..."
+	@docker container commit $(tag).test laborbenko:$(tag)
+	@$(MAKE) new-$(tag):$(name)
+
 .PHONY : %-image
 %-image : docker-env images/%-image
 	@
