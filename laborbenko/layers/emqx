@@ -12,8 +12,9 @@ run_in emqx  git remote add firest git@github.com:lafirest/emqx.git
 run_in emqx  git fetch origin --tags
 run_in emqx './scripts/gen-erlang-ls-config.sh > erlang_ls.config'
 set-env EMQX_DASHBOARD__DEFAULT_PASSWORD 111111
-set-env EMQX_API_KEY__BOOTSTRAP_FILE '"<(echo \"admin:111111\")"'
 printf 'export EMQX_NODE__NAME=emqx@$(hostname)\n' >> $_RC
 printf 'export EMQX_NODE__NAME=emqx@$(hostname)\n' >> $_PROFILO
+printf '_T=$(mktemp) && echo "admin:111111" >> $_T && export EMQX_API_KEY__BOOTSTRAP_FILE=$_T\n' >> $_RC
+printf '_T=$(mktemp) && echo "admin:111111" >> $_T && export EMQX_API_KEY__BOOTSTRAP_FILE=$_T\n' >> $_PROFILO
 init-rsync emqx
 clean-tmp
