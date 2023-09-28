@@ -6,8 +6,8 @@ RUN passwd -d root \
     && runuser - firest -c 'mkdir -p ~/.local/bin' \
     && echo "deb http://mirrors.ustc.edu.cn/debian testing main contrib non-free non-free-firmware" > /etc/apt/sources.list \
     && rm /etc/apt/sources.list.d/*
-ENV http_proxy=http://host.docker.internal:20172 \
-    https_proxy=http://host.docker.internal:20172 \
+ENV http_proxy=http://172.28.144.1:20172 \
+    https_proxy=http://172.28.144.1:20172 \
     CCACHE_DIR=/mnt/laboro/ccache \
     TZ=Asia/Shanghai
 COPY --chown=firest:firest ssh /home/firest/.ssh
