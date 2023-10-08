@@ -12,6 +12,6 @@ apt install -y ca-certificates
 apt install -y iproute2
 apt install -y xxd
 apt install -y socat
-apt install -y rsync
+#apt install -y rsync
 apt install -y curl
 clean-tmp

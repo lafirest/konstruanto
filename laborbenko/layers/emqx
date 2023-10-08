@@ -16,5 +16,5 @@ printf 'export EMQX_NODE__NAME=emqx@$(hostname)\n' >> $_RC
 printf 'export EMQX_NODE__NAME=emqx@$(hostname)\n' >> $_PROFILO
 printf '_T=$(mktemp) && echo "admin:111111" >> $_T && export EMQX_API_KEY__BOOTSTRAP_FILE=$_T\n' >> $_RC
 printf '_T=$(mktemp) && echo "admin:111111" >> $_T && export EMQX_API_KEY__BOOTSTRAP_FILE=$_T\n' >> $_PROFILO
-init-rsync emqx
+#init-rsync emqx
 clean-tmp
