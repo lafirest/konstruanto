@@ -86,6 +86,9 @@ create-ctl :
 	@docker run -it --privileged --ulimit nofile=1024000:1024000 \
 			--network=laboro \
 			--mount type=volume,source=laboro,destination=/mnt/laboro \
+			--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock \
+			--mount type=bind,source=/usr/bin/docker,destination=/usr/bin/docker \
+			--mount type=bind,source=/usr/libexec/docker/cli-plugins/docker-compose,destination=/usr/libexec/docker/cli-plugins/docker-compose \
 			--add-host=host.docker.internal:host-gateway \
 			$(mount) \
 			--name $(name) --hostname $(name) laborbenko:$(tag) -l $(layer) -e $(eval) -b $(isBuild)

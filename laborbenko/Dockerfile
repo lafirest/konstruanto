@@ -1,6 +1,8 @@
 FROM debian:testing-slim
 RUN passwd -d root \
     && useradd -m -p 19910306 firest \
+    && groupadd docker -g 48 \
+    && usermod -a -G docker firest \
     && mkdir -p /mnt/laboro \
     && chown firest:firest /mnt/laboro \
     && runuser - firest -c 'mkdir -p ~/.local/bin' \
